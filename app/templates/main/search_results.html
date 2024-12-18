@@ -1,0 +1,192 @@
+{% extends "base.html" %}
+
+{% block title %}Search Results{% endblock %}
+
+{% block content %}
+<div class="container">
+    <!-- Search Header -->
+    <div class="search-header mb-4">
+        <h2>Search Results for "{{ request.args.get('q', '') }}"</h2>
+        <div class="filters mb-3">
+            <div class="btn-group">
+                <button type="button" class="btn btn-outline-primary active" data-filter="all">
+                    All Sources
+                </button>
+                <button type="button" class="btn btn-outline-primary" data-filter="readable">
+                    Read Online
+                </button>
+                <button type="button" class="btn btn-outline-primary" data-filter="archive">
+                    Internet Archive
+                </button>
+                <button type="button" class="btn btn-outline-primary" data-filter="gutenberg">
+                    Project Gutenberg
+                </button>
+                <button type="button" class="btn btn-outline-primary" data-filter="standard">
+                    Standard Ebooks
+                </button>
+                <button type="button" class="btn btn-outline-primary" data-filter="openlibrary">
+                    Open Library
+                </button>
+                <button type="button" class="btn btn-outline-primary" data-filter="google">
+                    Google Books
+                </button>
+                <button type="button" class="btn btn-outline-primary" data-filter="notegpt">
+                    NoteGPT Books
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Results Grid -->
+    <div class="row" id="searchResults">
+        {% for book in all_results %}
+        <div class="col-md-4 col-lg-3 mb-4 book-card" 
+             data-source="{{ book.source }}"
+             data-readable="{{ 'true' if book.can_read_online else 'false' }}">
+            <div class="card h-100 shadow-sm">
+                <div class="card-img-wrapper">
+                    {% if book.cover_url %}
+                    <img src="{{ book.cover_url }}" class="card-img-top" alt="{{ book.title }}">
+                    {% else %}
+                    <div class="placeholder-cover d-flex align-items-center justify-content-center">
+                        <i class="fas fa-book fa-3x text-muted"></i>
+                    </div>
+                    {% endif %}
+                    <div class="position-absolute top-0 end-0 m-2 d-flex flex-column gap-1">
+                        {% if book.can_read_online %}
+                        <span class="badge bg-success">
+                            <i class="fas fa-book-reader"></i> Read Online
+                        </span>
+                        {% endif %}
+                        {% if book.is_public_domain %}
+                        <span class="badge bg-info">
+                            <i class="fas fa-unlock"></i> Public Domain
+                        </span>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="card-body">
+                    <h5 class="card-title text-truncate" title="{{ book.title }}">
+                        {{ book.title }}
+                    </h5>
+                    <p class="card-text">
+                        <small class="text-muted">By {{ book.author }}</small>
+                    </p>
+                    {% if book.description %}
+                    <p class="card-text description">
+                        {{ book.description[:100] }}...
+                    </p>
+                    {% endif %}
+                </div>
+                <div class="card-footer bg-transparent border-top-0">
+                    <div class="d-grid gap-2">
+                        {% if book.can_read_online %}
+                        <a href="{{ url_for('books.read_book', source=book.source, book_id=book.source_id) }}" 
+                           class="btn btn-primary btn-sm">
+                            <i class="fas fa-book-reader"></i> Read Now
+                        </a>
+                        {% else %}
+                        <a href="{{ url_for('books.view_book', source=book.source, book_id=book.source_id) }}" 
+                           class="btn btn-primary btn-sm">
+                            View Details
+                        </a>
+                        {% endif %}
+                        {% if current_user.is_authenticated %}
+                        <button class="btn btn-outline-primary btn-sm add-to-library"
+                                data-book-id="{{ book.source_id }}"
+                                data-source="{{ book.source }}">
+                            <i class="fas fa-plus"></i> Add to Library
+                        </button>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- No Results Message -->
+    {% if not all_results %}
+    <div class="text-center py-5">
+        <i class="fas fa-search fa-3x text-muted mb-3"></i>
+        <h3>No books found</h3>
+        <p class="text-muted">Try adjusting your search terms or filters</p>
+    </div>
+    {% endif %}
+</div>
+
+<!-- Loading Spinner -->
+<div id="loadingSpinner" class="text-center d-none">
+    <div class="spinner-border text-primary" role="status">
+        <span class="visually-hidden">Loading...</span>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Filter functionality
+    const filterButtons = document.querySelectorAll('.filters button');
+    filterButtons.forEach(button => {
+        button.addEventListener('click', function() {
+            const filter = this.dataset.filter;
+            
+            // Update active button
+            filterButtons.forEach(btn => btn.classList.remove('active'));
+            this.classList.add('active');
+            
+            // Filter books
+            const books = document.querySelectorAll('.book-card');
+            books.forEach(book => {
+                const isReadable = book.dataset.readable === 'true';
+                const source = book.dataset.source;
+                
+                let show = false;
+                if (filter === 'all') {
+                    show = true;
+                } else if (filter === 'readable') {
+                    show = isReadable;
+                } else {
+                    show = source === filter;
+                }
+                
+                book.style.display = show ? 'block' : 'none';
+            });
+        });
+    });
+
+    // Add to Library functionality
+    document.querySelectorAll('.add-to-library').forEach(button => {
+        button.addEventListener('click', async function() {
+            const bookId = this.dataset.bookId;
+            const source = this.dataset.source;
+            
+            try {
+                const response = await fetch('/api/books/save', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        book_id: bookId,
+                        source: source
+                    })
+                });
+                
+                const data = await response.json();
+                if (data.status === 'success') {
+                    this.innerHTML = '<i class="fas fa-check"></i> Added';
+                    this.disabled = true;
+                } else {
+                    alert(data.message || 'Error adding book to library');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Error adding book to library');
+            }
+        });
+    });
+});
+</script>
+{% endblock %}

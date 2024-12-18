@@ -1,0 +1,131 @@
+{% extends "base.html" %}
+
+{% block title %}AI Text Summarizer{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body">
+                    <h2 class="mb-4">AI Text Summarizer</h2>
+                    
+                    <form method="POST" enctype="multipart/form-data" id="summarizerForm">
+                        <div class="row g-4">
+                            <!-- Text Input -->
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="text" class="form-label">Enter Text</label>
+                                    <textarea class="form-control" id="text" name="text" rows="10" 
+                                              placeholder="Paste your text here or upload a file...">{{ original_text or '' }}</textarea>
+                                </div>
+                            </div>
+                            
+                            <!-- Summary Output -->
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label class="form-label">Summary</label>
+                                    <div class="summary-output p-3 bg-light rounded">
+                                        {% if summary %}
+                                            {{ summary|safe }}
+                                        {% else %}
+                                            <p class="text-muted">Your summary will appear here...</p>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Controls -->
+                            <div class="col-12">
+                                <div class="row g-3 align-items-end">
+                                    <!-- File Upload -->
+                                    <div class="col-md-4">
+                                        <label for="file" class="form-label">Or Upload a File</label>
+                                        <input type="file" class="form-control" id="file" name="file" 
+                                               accept=".txt,.doc,.docx,.pdf">
+                                    </div>
+                                    
+                                    <!-- Method Selection -->
+                                    <div class="col-md-3">
+                                        <label for="method" class="form-label">Summarization Method</label>
+                                        <select class="form-select" id="method" name="method">
+                                            <option value="extractive" {% if method == 'extractive' %}selected{% endif %}>
+                                                Extractive
+                                            </option>
+                                            <option value="abstractive" {% if method == 'abstractive' %}selected{% endif %}>
+                                                Abstractive
+                                            </option>
+                                        </select>
+                                    </div>
+                                    
+                                    <!-- Length Selection -->
+                                    <div class="col-md-3">
+                                        <label for="length" class="form-label">Summary Length</label>
+                                        <select class="form-select" id="length" name="length">
+                                            <option value="short" {% if length == 'short' %}selected{% endif %}>Short</option>
+                                            <option value="medium" {% if length == 'medium' %}selected{% endif %}>Medium</option>
+                                            <option value="long" {% if length == 'long' %}selected{% endif %}>Long</option>
+                                        </select>
+                                    </div>
+                                    
+                                    <!-- Submit Button -->
+                                    <div class="col-md-2">
+                                        <button type="submit" class="btn btn-primary w-100" id="summarizeBtn">
+                                            <i class="fas fa-magic me-2"></i>Summarize
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.getElementById('summarizerForm');
+    const fileInput = document.getElementById('file');
+    const textArea = document.getElementById('text');
+    const summarizeBtn = document.getElementById('summarizeBtn');
+
+    fileInput.addEventListener('change', function() {
+        const file = this.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                textArea.value = e.target.result;
+            };
+            reader.readAsText(file);
+        }
+    });
+
+    form.addEventListener('submit', function() {
+        summarizeBtn.disabled = true;
+        summarizeBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Summarizing...';
+    });
+});
+</script>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+.summary-output {
+    min-height: 258px; /* Match textarea height */
+    border: 1px solid rgba(0,0,0,.1);
+}
+
+.form-control, .form-select {
+    border: 1px solid rgba(0,0,0,.1);
+}
+
+.form-control:focus, .form-select:focus {
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 0.2rem rgba(0,102,255,.25);
+}
+</style>
+{% endblock %}

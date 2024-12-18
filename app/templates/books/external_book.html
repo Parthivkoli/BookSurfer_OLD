@@ -1,0 +1,76 @@
+{% extends "base.html" %}
+
+{% block title %}{{ book.title }}{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <!-- Book Cover and Info -->
+        <div class="col-md-4">
+            <div class="card">
+                <img src="{{ book.cover }}" class="card-img-top" alt="{{ book.title }}">
+                <div class="card-body">
+                    <h5 class="card-title">{{ book.title }}</h5>
+                    <p class="card-text">By {{ book.author }}</p>
+                    <div class="d-grid gap-2">
+                        <a href="{{ url_for('books.read_book', source=book.source, book_id=book.id) }}" 
+                           class="btn btn-primary">
+                            Start Reading
+                        </a>
+                        {% if current_user.is_authenticated %}
+                        <button class="btn btn-outline-primary" onclick="addToLibrary()">
+                            Add to Library
+                        </button>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Book Preview -->
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Book Preview</h5>
+                    <div class="book-preview">
+                        {{ content[:500] if content else 'No preview available' }}...
+                    </div>
+                    <div class="text-center mt-3">
+                        <a href="{{ url_for('books.read_book', source=book.source, book_id=book.id) }}" 
+                           class="btn btn-primary">
+                            Continue Reading
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Add to Library functionality -->
+<script>
+function addToLibrary() {
+    fetch('{{ url_for("books.add_to_library") }}', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            title: '{{ book.title }}',
+            author: '{{ book.author }}',
+            cover: '{{ book.cover }}',
+            source: '{{ book.source }}',
+            source_id: '{{ book.id }}'
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.status === 'success') {
+            alert('Book added to your library!');
+        } else {
+            alert('Error adding book to library');
+        }
+    });
+}
+</script>
+{% endblock %} 

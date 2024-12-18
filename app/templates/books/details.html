@@ -1,0 +1,235 @@
+{% extends "base.html" %}
+
+{% block title %}{{ book.title }} - Details{% endblock %}
+
+{% block extra_css %}
+<style>
+.book-container {
+    max-width: 1400px;
+    margin: 0 auto;
+}
+
+.book-cover {
+    max-height: 600px;
+    object-fit: contain;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    transition: transform 0.3s ease;
+}
+
+.book-cover:hover {
+    transform: scale(1.02);
+}
+
+.book-metadata {
+    background: #f8f9fa;
+    border-radius: 12px;
+    padding: 30px;
+    margin-bottom: 30px;
+    box-shadow: 0 2px 15px rgba(0,0,0,0.05);
+}
+
+.book-preview {
+    background: #fff;
+    border: 1px solid #dee2e6;
+    border-radius: 12px;
+    padding: 40px;
+    font-size: 18px;
+    line-height: 1.8;
+    max-height: 500px;
+    overflow-y: auto;
+    margin-bottom: 30px;
+    box-shadow: 0 2px 15px rgba(0,0,0,0.05);
+}
+
+.action-buttons .btn {
+    margin: 8px;
+    min-width: 200px;
+    padding: 12px 24px;
+    font-size: 1.1rem;
+}
+
+.metadata-item {
+    margin-bottom: 20px;
+    font-size: 1.1rem;
+}
+
+.preview-fade::after {
+    height: 150px;
+}
+
+@media (min-width: 1400px) {
+    .book-content-area {
+        padding-left: 40px;
+    }
+}
+
+.book-title {
+    font-size: 3rem;
+    font-weight: 700;
+    background: linear-gradient(45deg, #1a73e8, #8833ff);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    margin-bottom: 1rem;
+}
+
+.book-author {
+    font-size: 1.8rem;
+    color: #666;
+    margin-bottom: 2rem;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <!-- Book Title and Author -->
+    <div class="text-center mb-5">
+        <h1 class="display-4">{{ book.title }}</h1>
+        <h3 class="text-muted">by {{ book.author }}</h3>
+    </div>
+
+    <div class="row">
+        <!-- Left Column: Cover and Actions -->
+        <div class="col-md-4">
+            <!-- Book Cover -->
+            <div class="text-center mb-4">
+                {% if book.cover_url %}
+                <img src="{{ book.cover_url }}" alt="{{ book.title }}" class="book-cover img-fluid rounded">
+                {% else %}
+                <div class="book-cover d-flex align-items-center justify-content-center bg-light rounded">
+                    <i class="fas fa-book fa-4x text-secondary"></i>
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="action-buttons d-grid gap-2">
+                <button onclick="startReading()" class="btn btn-primary btn-lg">
+                    <i class="fas fa-book-reader"></i> Start Reading
+                </button>
+                
+                <button onclick="viewFullBook()" class="btn btn-outline-primary">
+                    <i class="fas fa-book-open"></i> View Full Book
+                </button>
+
+                {% if current_user.is_authenticated %}
+                <button onclick="addToLibrary()" class="btn btn-outline-secondary">
+                    <i class="fas fa-bookmark"></i> Add to Library
+                </button>
+                {% endif %}
+
+                {% if book.formats %}
+                <div class="dropdown">
+                    <button class="btn btn-outline-secondary dropdown-toggle w-100" type="button" data-bs-toggle="dropdown">
+                        <i class="fas fa-download"></i> Download
+                    </button>
+                    <ul class="dropdown-menu w-100">
+                        {% if book.formats.pdf %}
+                        <li><a class="dropdown-item" href="{{ book.formats.pdf }}">PDF Format</a></li>
+                        {% endif %}
+                        {% if book.formats.epub %}
+                        <li><a class="dropdown-item" href="{{ book.formats.epub }}">EPUB Format</a></li>
+                        {% endif %}
+                        {% if book.formats.text %}
+                        <li><a class="dropdown-item" href="{{ book.formats.text }}">Plain Text</a></li>
+                        {% endif %}
+                    </ul>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Right Column: Details and Preview -->
+        <div class="col-md-8">
+            <!-- Book Metadata -->
+            <div class="book-metadata">
+                <div class="row">
+                    {% if book.language %}
+                    <div class="col-md-6 metadata-item">
+                        <i class="fas fa-language"></i> Language: {{ book.language|upper }}
+                    </div>
+                    {% endif %}
+                    
+                    {% if book.publication_year %}
+                    <div class="col-md-6 metadata-item">
+                        <i class="fas fa-calendar"></i> Published: {{ book.publication_year }}
+                    </div>
+                    {% endif %}
+                    
+                    {% if book.genre %}
+                    <div class="col-md-6 metadata-item">
+                        <i class="fas fa-bookmark"></i> Genre: {{ book.genre }}
+                    </div>
+                    {% endif %}
+                    
+                    <div class="col-md-6 metadata-item">
+                        <i class="fas fa-globe"></i> Source: {{ book.source|title }}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Book Description -->
+            {% if book.description %}
+            <div class="mb-4">
+                <h4>About this book</h4>
+                <p class="lead">{{ book.description }}</p>
+            </div>
+            {% endif %}
+
+            <!-- Book Preview -->
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h4 class="mb-0">Preview</h4>
+                    <button onclick="startReading()" class="btn btn-outline-primary btn-sm">
+                        Continue Reading
+                    </button>
+                </div>
+                <div class="card-body">
+                    <div class="book-preview preview-fade">
+                        {{ preview_content | safe }}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function startReading() {
+    window.location.href = "{{ url_for('books.read_book', source=book.source, book_id=book.source_id) }}";
+}
+
+function viewFullBook() {
+    // Open in a new tab
+    window.open("{{ url_for('books.read_book', source=book.source, book_id=book.source_id, view='full') }}", '_blank');
+}
+
+function addToLibrary() {
+    fetch('{{ url_for("books.add_to_library") }}', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            source: '{{ book.source }}',
+            source_id: '{{ book.source_id }}',
+            title: '{{ book.title }}',
+            author: '{{ book.author }}',
+            cover_url: '{{ book.cover_url }}'
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.status === 'success') {
+            alert('Book added to your library!');
+        } else {
+            alert(data.message || 'Error adding book to library');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Error adding book to library');
+    });
+}
+</script>
+{% endblock %} 

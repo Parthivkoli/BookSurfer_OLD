@@ -1,0 +1,74 @@
+{% extends "base.html" %}
+
+{% block title %}Summarize Book{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="mb-0">Book Summarizer</h2>
+                </div>
+                <div class="card-body">
+                    <form method="POST" enctype="multipart/form-data" class="needs-validation" novalidate>
+                        <div class="mb-4">
+                            <label for="file" class="form-label">Upload Book File</label>
+                            <input type="file" class="form-control" id="file" name="file" 
+                                   accept=".pdf,.epub,.txt,.html" required>
+                            <div class="form-text">
+                                Supported formats: PDF, EPUB, TXT, HTML
+                            </div>
+                        </div>
+                        
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-magic me-2"></i>Generate Summary
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            
+            <div class="card mt-4">
+                <div class="card-header">
+                    <h3 class="mb-0">About the Summarizer</h3>
+                </div>
+                <div class="card-body">
+                    <p>Our advanced summarizer uses multiple techniques to create comprehensive book summaries:</p>
+                    <ul>
+                        <li>AI-powered content analysis</li>
+                        <li>Key passage extraction</li>
+                        <li>Main topic identification</li>
+                        <li>Natural language processing</li>
+                    </ul>
+                    <p>The generated PDF includes:</p>
+                    <ul>
+                        <li>Executive summary</li>
+                        <li>Main topics and themes</li>
+                        <li>Important passages</li>
+                        <li>Key insights</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Form validation
+(function () {
+    'use strict'
+    var forms = document.querySelectorAll('.needs-validation')
+    Array.prototype.slice.call(forms).forEach(function (form) {
+        form.addEventListener('submit', function (event) {
+            if (!form.checkValidity()) {
+                event.preventDefault()
+                event.stopPropagation()
+            }
+            form.classList.add('was-validated')
+        }, false)
+    })
+})()
+</script>
+{% endblock %} 

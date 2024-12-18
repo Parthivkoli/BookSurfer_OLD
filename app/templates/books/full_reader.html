@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+
+{% block title %}{{ book.title }} - Full View{% endblock %}
+
+{% block extra_css %}
+<style>
+.full-reader {
+    max-width: 800px;
+    margin: 80px auto;
+    padding: 40px;
+    font-size: 18px;
+    line-height: 1.8;
+}
+
+.book-header {
+    text-align: center;
+    margin-bottom: 40px;
+}
+
+.chapter {
+    margin-bottom: 30px;
+}
+
+@media print {
+    .full-reader {
+        margin: 0;
+        padding: 20px;
+    }
+    
+    .no-print {
+        display: none;
+    }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="full-reader">
+    <div class="book-header">
+        <h1>{{ book.title }}</h1>
+        <h3 class="text-muted">by {{ book.author }}</h3>
+    </div>
+
+    <div class="book-content">
+        {{ content | safe }}
+    </div>
+</div>
+
+<div class="fixed-bottom p-3 bg-light border-top no-print">
+    <div class="container d-flex justify-content-between align-items-center">
+        <button onclick="window.print()" class="btn btn-outline-secondary">
+            <i class="fas fa-print"></i> Print
+        </button>
+        <button onclick="window.close()" class="btn btn-outline-primary">
+            <i class="fas fa-times"></i> Close
+        </button>
+    </div>
+</div>
+{% endblock %} 
