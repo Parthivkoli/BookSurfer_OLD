@@ -31,19 +31,19 @@ ENV/
 *.swp
 *.swo
 
-# Flask
-instance/
-.webassets-cache
-
-# Environment variables
+# Environment Variables
 .env
+.env.local
 
 # Database
 *.db
 *.sqlite3
 
-# Uploaded files
-app/static/uploads/
-
 # Logs
 *.log
+
+# Uploads
+uploads/
+
+# Vercel
+.vercel
