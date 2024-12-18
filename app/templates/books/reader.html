@@ -183,8 +183,8 @@
 
 {% block extra_js %}
 <script>
-let currentPage = {{ current_page }};
-const totalPages = {{ total_pages }};
+let currentPage = {{ current_page | tojson }};
+const totalPages = {{ total_pages | tojson }};
 const content = {{ content | tojson | safe }};
 let fontSize = 18;
 
@@ -192,7 +192,7 @@ function updatePage(pageNum) {
     if (pageNum < 1 || pageNum > totalPages) return;
     
     currentPage = pageNum;
-    document.getElementById('bookContent').innerHTML = content[currentPage-1];
+    document.getElementById('bookContent').innerHTML = content[currentPage - 1];
     document.getElementById('currentPageNum').textContent = currentPage;
     
     // Update progress bar
@@ -225,21 +225,6 @@ function toggleTheme() {
     const icon = document.querySelector('.theme-toggle i');
     icon.classList.toggle('fa-moon');
     icon.classList.toggle('fa-sun');
-}
-
-function saveProgress() {
-    fetch('{{ url_for("books.save_progress") }}', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-            source: '{{ book.source }}',
-            source_id: '{{ book.source_id }}',
-            page: currentPage,
-            total_pages: totalPages
-        })
-    }).catch(console.error);
 }
 
 // Navigation
