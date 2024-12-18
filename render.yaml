@@ -1,0 +1,13 @@
+services:
+  - type: web
+    name: BookSurfer
+    env: python
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn app.wsgi:handler --bind 0.0.0.0:$PORT
+    envVars:
+      - key: DATABASE_URL
+        value: postgres://username:password@host:port/booksurfer_db
+      - key: SECRET_KEY
+        value: b'_5#y2L"F4Q8z\n\xec]/'
+      - key: UPLOAD_FOLDER
+        value: uploads 
