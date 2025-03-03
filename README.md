@@ -1,4 +1,5 @@
-# BookSurfer📚🌊   
+# BookSurfer📚🌊  
+## ⚠️❗Switched to a new framework this has been discontinued.❗⚠️
 
 Welcome to **BookSurfer**, a Flask-based web application to manage your reading journey and explore new books!  
 
